@@ -8,122 +8,126 @@
         body {
             margin: 0;
             padding: 0;
-            height: 100dvh; 
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(to right, #ee9ca7, #ffdde1);
-            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #ffafbd, #ffc3a0);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             text-align: center;
-            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         h1 {
             color: #d6336c;
-            font-size: 2rem;
-            margin-bottom: 20px;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
             padding: 0 20px;
         }
 
-        .buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            align-items: center;
+        #feedback-msg {
+            font-size: 1.3rem;
+            color: #b33939;
+            font-weight: bold;
+            height: 50px;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+
+        .buttons-container {
+            position: relative;
             width: 100%;
-            height: 100px;
+            height: 300px; /* Space for the button to jump around */
         }
 
         button {
-            padding: 15px 40px;
+            padding: 15px 35px;
             font-size: 1.2rem;
             border: none;
             border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.1s ease;
         }
 
         #yesBtn {
             background-color: #ff4d6d;
             color: white;
-            z-index: 100;
+            position: absolute;
+            left: 50%;
+            top: 20%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
         }
 
         #noBtn {
-            background-color: #868e96;
+            background-color: #7f8c8d;
             color: white;
-            position: fixed;
-            z-index: 50;
-            transition: all 0.2s ease;
+            position: fixed; /* Fixed is key for mobile jumping */
+            left: 50%;
+            top: 60%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        #feedback-msg {
-            margin-top: 20px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #d6336c;
-            min-height: 1.5em;
-        }
-
-        /* Success Section */
+        /* Success Screen */
         #success-container {
             display: none;
+            position: fixed;
+            inset: 0;
+            background: #fff0f3;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(to bottom, #ffdde1, #ee9ca7);
             z-index: 1000;
             padding: 20px;
         }
 
         .heart {
             background-color: #ff4d6d;
-            height: 80px;
-            width: 80px;
+            height: 70px;
+            width: 70px;
             transform: rotate(-45deg);
-            animation: heartbeat 0.8s infinite;
-            margin-bottom: 40px;
+            animation: beat 0.6s infinite alternate;
+            margin-bottom: 50px;
         }
-
         .heart:before, .heart:after {
             content: "";
             background-color: #ff4d6d;
             border-radius: 50%;
-            height: 80px;
-            width: 80px;
+            height: 70px;
+            width: 70px;
             position: absolute;
         }
-        .heart:before { top: -40px; left: 0; }
-        .heart:after { left: 40px; top: 0; }
+        .heart:before { top: -35px; left: 0; }
+        .heart:after { left: 35px; top: 0; }
 
-        @keyframes heartbeat {
-            0% { transform: scale(1) rotate(-45deg); }
-            50% { transform: scale(1.2) rotate(-45deg); }
-            100% { transform: scale(1) rotate(-45deg); }
+        @keyframes beat {
+            to { transform: scale(1.2) rotate(-45deg); }
         }
 
         .final-text {
-            font-size: 1.8rem;
-            line-height: 1.6;
+            font-size: 1.6rem;
             color: #c9184a;
-            white-space: pre-line; /* Keeps line breaks */
+            font-weight: bold;
+            white-space: pre-wrap;
         }
     </style>
 </head>
 <body>
 
-    <div id="main-content">
+    <div id="game-ui">
         <h1>Do you want to be my Valentine?</h1>
-        <div class="buttons">
+        <p id="feedback-msg">I promise I'm nice! 😉</p>
+        
+        <div class="buttons-container">
             <button id="yesBtn">YES</button>
             <button id="noBtn">NO</button>
         </div>
-        <p id="feedback-msg"></p>
     </div>
 
     <div id="success-container">
@@ -136,44 +140,60 @@
     </audio>
 
     <script>
-        const yesBtn = document.getElementById('yesBtn');
         const noBtn = document.getElementById('noBtn');
-        const feedbackMsg = document.getElementById('feedback-msg');
-        const successContainer = document.getElementById('success-container');
+        const yesBtn = document.getElementById('yesBtn');
+        const feedback = document.getElementById('feedback-msg');
+        const success = document.getElementById('success-container');
         const finalMsg = document.getElementById('finalMsg');
         const audio = document.getElementById('bgMusic');
 
-        const funnyMessages = [
-            "Are you sure? 🤔", "Try again! 😜", "Not that one! 🚫", 
-            "Error 404: No not found ❌", "Nice try! 😂", "Wait, what? 🤨"
+        const funMessages = [
+            "Nice try! 😂",
+            "Too slow! 🏃‍♀️",
+            "Not happening! 🙅‍♀️",
+            "Are you even trying? 😏",
+            "Wrong button! 🚩",
+            "I'm over here now! ✨",
+            "Catch me if you can! 💨",
+            "Give up yet? 😜"
         ];
 
-        function moveButton(e) {
-            if(e) e.preventDefault();
-            const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
-            const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
-            noBtn.style.left = `${x}px`;
-            noBtn.style.top = `${y}px`;
-            
-            feedbackMsg.innerText = funnyMessages[Math.floor(Math.random() * funnyMessages.length)];
+        let msgIndex = 0;
+
+        function escape() {
+            // Calculate random coordinates
+            // We keep it within 10% to 90% of screen to avoid getting stuck in corners
+            const newX = Math.random() * (window.innerWidth - 150) + 50;
+            const newY = Math.random() * (window.innerHeight - 150) + 50;
+
+            noBtn.style.left = `${newX}px`;
+            noBtn.style.top = `${newY}px`;
+            noBtn.style.transform = 'translate(-50%, -50%)';
+
+            // Change the message
+            feedback.innerText = funMessages[msgIndex];
+            msgIndex = (msgIndex + 1) % funMessages.length;
         }
 
-        // iPhone & Android "No" evasion
-        noBtn.addEventListener('touchstart', moveButton, { passive: false });
-        noBtn.addEventListener('mouseover', moveButton);
+        // The "Running" logic for both Desktop and Mobile
+        noBtn.addEventListener('mouseover', escape); // PC
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Critical: Stops the phone from clicking the button
+            escape();
+        });
 
-        function handleYes() {
-            successContainer.style.display = 'flex';
-            // Your exact requested message
-            finalMsg.innerText = "💝Clever got you 😄.\nThis is the best \"yes\" ever 💝💖\nYou are his valentine now 🥰🥰";
-            audio.play().catch(() => console.log("Music ready after tap"));
+        function celebrate() {
+            success.style.display = 'flex';
+            finalMsg.innerText = "💝Clever got you 😄.\n\nThis is the best \"yes\" ever 💝💖\n\nYou are his valentine now 🥰🥰";
+            audio.play().catch(() => console.log("Music started"));
         }
 
-        yesBtn.addEventListener('click', handleYes);
+        yesBtn.addEventListener('click', celebrate);
         yesBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            handleYes();
+            celebrate();
         });
+
     </script>
 </body>
 </html>
